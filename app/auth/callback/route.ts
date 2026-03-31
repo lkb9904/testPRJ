@@ -5,10 +5,10 @@ import { NextResponse } from "next/server";
 /** 오픈 리다이렉트·경로 조작 방지 */
 function sanitizeNextPath(next: string | null): string {
   if (!next || !next.startsWith("/") || next.startsWith("//")) {
-    return "/dashboard";
+    return "/";
   }
   if (next.includes("..") || next.includes("\\")) {
-    return "/dashboard";
+    return "/";
   }
   return next;
 }

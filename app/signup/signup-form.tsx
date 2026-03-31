@@ -56,7 +56,7 @@ export default function SignupForm() {
     }
 
     if (data.session) {
-      router.push("/dashboard");
+      router.push("/");
       router.refresh();
       return;
     }

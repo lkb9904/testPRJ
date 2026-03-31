@@ -1,17 +1,15 @@
+import { cache } from "react";
 import { getProfileRole } from "@/lib/auth/profile-role";
 import { createClient } from "@/lib/supabase/server";
-import { PublicLanding } from "./public-landing";
 
-/** 일반 고객용 공개 홈 — 로그인 없이 접근 가능 */
-export default async function Home() {
+/** (public) 레이아웃·홈에서 동일 요청 내 1회만 조회 */
+export const getPublicSession = cache(async () => {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
   const profileRole = user
     ? await getProfileRole(supabase, user.id)
     : null;
-
-  return <PublicLanding user={user} profileRole={profileRole} />;
-}
+  return { user, profileRole };
+});

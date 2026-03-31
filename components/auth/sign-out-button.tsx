@@ -1,7 +1,6 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 type Props = {
@@ -14,15 +13,14 @@ export function SignOutButton({
   className,
   redirectTo = "/",
 }: Props) {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   async function handleLogout() {
     setLoading(true);
     const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push(redirectTo);
-    router.refresh();
+    await supabase.auth.signOut({ scope: "global" });
+    /** RSC·쿠키 반영: 클라이언트 라우팅만으로는 로그인 상태가 남는 경우가 있어 전체 로드 */
+    window.location.assign(redirectTo);
   }
 
   return (
