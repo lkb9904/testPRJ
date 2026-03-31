@@ -30,15 +30,14 @@ export default function SignupForm() {
     }
 
     setLoading(true);
-    const baseUrl =
-      process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+    const origin = window.location.origin.replace(/\/$/, "");
     const supabase = createClient();
 
     const { data, error: signErr } = await supabase.auth.signUp({
       email: email.trim(),
       password,
       options: {
-        emailRedirectTo: `${baseUrl}/auth/callback?next=/dashboard`,
+        emailRedirectTo: `${origin}/auth/callback`,
         data: {
           full_name: fullName.trim() || undefined,
         },

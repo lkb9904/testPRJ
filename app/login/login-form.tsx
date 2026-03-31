@@ -43,13 +43,14 @@ export default function LoginForm() {
   async function signInWithGoogle() {
     setOauthLoading(true);
     setFormError(null);
-    const baseUrl =
-      process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+    /** 로그인 시작한 탭과 동일 origin (localhost vs 127.0.0.1 혼용 방지) */
+    const origin = window.location.origin.replace(/\/$/, "");
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${baseUrl}/auth/callback?next=/dashboard`,
+        // 쿼리스트링 없음: Supabase Redirect URLs에 정확히 등록하기 쉬움 (?next= 는 거절되는 경우 있음)
+        redirectTo: `${origin}/auth/callback`,
       },
     });
     if (error) {
@@ -169,7 +170,11 @@ export default function LoginForm() {
       </p>
 
       <p className="text-center text-xs leading-relaxed text-[#7a8a82]">
-        Google 로그인은 Supabase 대시보드에서 Provider를 활성화해야 합니다.
+        Google 로그인은 Supabase → Authentication → URL Configuration에{" "}
+        <code className="rounded bg-zinc-100 px-1 text-[10px] dark:bg-zinc-800">
+          (현재주소)/auth/callback
+        </code>{" "}
+        을 Redirect URLs에 추가해야 합니다.
       </p>
     </div>
   );
