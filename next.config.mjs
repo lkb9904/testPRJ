@@ -26,6 +26,10 @@ const nextConfig = {
       process.env.SUPABASE_ANON_KEY ??
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY,
+    // Vercel 빌드 시 VERCEL_URL 자동 주입 → OAuth redirectTo 기준 URL (예: testprj-web.vercel.app)
+    NEXT_PUBLIC_SITE_URL:
+      process.env.NEXT_PUBLIC_SITE_URL ??
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined),
   },
 };
 
