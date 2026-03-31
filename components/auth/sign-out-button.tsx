@@ -1,6 +1,5 @@
 "use client";
 
-import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 
 type Props = {
@@ -9,24 +8,26 @@ type Props = {
   redirectTo?: string;
 };
 
+/**
+ * 서버 라우트 `/auth/sign-out`으로 이동해 httpOnly 세션 쿠키까지 정리합니다.
+ * (클라이언트만 signOut 하면 로그인 상태가 남는 경우 방지)
+ */
 export function SignOutButton({
   className,
   redirectTo = "/",
 }: Props) {
   const [loading, setLoading] = useState(false);
 
-  async function handleLogout() {
+  function handleLogout() {
     setLoading(true);
-    const supabase = createClient();
-    await supabase.auth.signOut({ scope: "global" });
-    /** RSC·쿠키 반영: 클라이언트 라우팅만으로는 로그인 상태가 남는 경우가 있어 전체 로드 */
-    window.location.assign(redirectTo);
+    const next = `/auth/sign-out?next=${encodeURIComponent(redirectTo)}`;
+    window.location.assign(next);
   }
 
   return (
     <button
       type="button"
-      onClick={() => void handleLogout()}
+      onClick={() => handleLogout()}
       disabled={loading}
       className={
         className ??

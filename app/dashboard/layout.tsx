@@ -7,9 +7,10 @@ import { SessionIdleGuard } from "./session-idle-guard";
 const nav = [
   { href: "/dashboard", label: "대시보드" },
   { href: "/dashboard/pickup", label: "픽업 장소" },
-  { href: "/dashboard", label: "주문", disabled: true },
-  { href: "/dashboard", label: "상품", disabled: true },
-  { href: "/dashboard", label: "설정", disabled: true },
+  { href: "/dashboard/products", label: "상품" },
+  { href: "/dashboard/stock", label: "픽업 재고" },
+  { href: "/dashboard/orders", label: "주문" },
+  { href: "/dashboard/alerts", label: "재고 알림" },
 ];
 
 export default async function DashboardLayout({
@@ -41,25 +42,15 @@ export default async function DashboardLayout({
           </Link>
         </div>
         <nav className="flex flex-col gap-0.5 p-2">
-          {nav.map((item) =>
-            item.disabled ? (
-              <span
-                key={`${item.label}-disabled`}
-                className="cursor-not-allowed rounded-md px-3 py-2 text-sm text-zinc-400 dark:text-zinc-600"
-              >
-                {item.label}
-                <span className="ml-1 text-xs">(예정)</span>
-              </span>
-            ) : (
-              <Link
-                key={`${item.href}-${item.label}`}
-                href={item.href}
-                className="rounded-md bg-zinc-100 px-3 py-2 text-sm font-medium text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
-              >
-                {item.label}
-              </Link>
-            ),
-          )}
+          {nav.map((item) => (
+            <Link
+              key={`${item.href}-${item.label}`}
+              href={item.href}
+              className="rounded-md bg-zinc-100 px-3 py-2 text-sm font-medium text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
+            >
+              {item.label}
+            </Link>
+          ))}
         </nav>
         <div className="mt-auto border-t border-zinc-200 p-3 dark:border-zinc-800">
           <p className="text-xs text-zinc-500 dark:text-zinc-400">{email}</p>

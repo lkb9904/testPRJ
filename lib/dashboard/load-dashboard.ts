@@ -104,7 +104,8 @@ export async function loadDashboardData(): Promise<{
 
   const { count: inventoryAlertCount, error: invErr } = await supabase
     .from("inventory_alerts")
-    .select("*", { count: "exact", head: true });
+    .select("*", { count: "exact", head: true })
+    .is("resolved_at", null);
 
   if (invErr) {
     logger.error("dashboard.inventory_alerts_count", invErr, { requestId });
