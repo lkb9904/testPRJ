@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 import { isStaffOrAdmin, type ProfileRole } from "@/lib/auth/profile-role";
 
 type Props = {
@@ -62,6 +63,7 @@ export function PublicLanding({ user, profileRole }: Props) {
                 <span className="rounded-md bg-[#e8f0eb] px-2 py-1 text-[10px] font-medium text-[#3d5248]">
                   {canAdmin ? "관리자" : "회원"}
                 </span>
+                <SignOutButton className="rounded-lg border border-[#d1ddd6] bg-white px-3 py-2 text-sm font-medium text-[#5c6b63] transition hover:bg-[#f4faf7] disabled:opacity-60" />
               </>
             )}
           </nav>
