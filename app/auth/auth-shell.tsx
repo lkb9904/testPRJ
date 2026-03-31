@@ -22,12 +22,12 @@ export function AuthShell({
       <header className="relative z-10 border-b border-[#dfe8e2]/80 bg-white/80 backdrop-blur-sm">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-6">
           <a
-            href="/login"
+            href="/"
             className="flex items-baseline gap-2 font-semibold tracking-tight text-[#14532d]"
           >
             <span className="text-lg">새벽과일</span>
             <span className="text-xs font-normal text-[#5c6b63]">
-              관리자
+              로그인
             </span>
           </a>
         </div>

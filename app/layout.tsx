@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "새벽과일 · 관리자",
-  description: "새벽과일 매장 관리 · 주문·재고",
+  title: "새벽과일 · 신선한 과일을 새벽에",
+  description:
+    "새벽과일 — 제철 과일 온라인 주문·매장 안내. 매장 관리·주문 대시보드 로그인 가능.",
 };
 
 export default function RootLayout({
