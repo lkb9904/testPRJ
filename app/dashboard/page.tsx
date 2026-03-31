@@ -45,15 +45,7 @@ export default async function DashboardPage() {
           대시보드
         </h1>
         <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-          Supabase의{" "}
-          <code className="rounded bg-zinc-200 px-1 text-xs dark:bg-zinc-800">
-            v_dashboard_orders
-          </code>{" "}
-          뷰와{" "}
-          <code className="rounded bg-zinc-200 px-1 text-xs dark:bg-zinc-800">
-            inventory_alerts
-          </code>{" "}
-          테이블에서 불러옵니다.
+          주문·매출·재고 알림 요약을 불러옵니다.
         </p>
         {error ? (
           <div
@@ -66,7 +58,7 @@ export default async function DashboardPage() {
             </p>
             {process.env.NODE_ENV === "development" ? (
               <p className="mt-2 text-xs">
-                개발 모드: Supabase 마이그레이션 적용 여부와 RLS 권한을 확인하세요.
+                개발 모드: DB 연결·마이그레이션 적용 여부를 확인하세요.
               </p>
             ) : null}
           </div>

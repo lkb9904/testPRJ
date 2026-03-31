@@ -1,11 +1,13 @@
 "use client";
 
+import { useDashboardToast } from "@/components/dashboard/dashboard-toast";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createPickupLocation } from "./actions";
 
 export function PickupLocationForm({ mode }: { mode: "create" }) {
   const router = useRouter();
+  const { showToast } = useDashboardToast();
   const [error, setError] = useState<string | null>(null);
 
   if (mode !== "create") return null;
@@ -13,13 +15,20 @@ export function PickupLocationForm({ mode }: { mode: "create" }) {
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
-    const fd = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const fd = new FormData(form);
     const r = await createPickupLocation(fd);
     if (r && "error" in r && r.error) {
       setError(r.error);
+      showToast({
+        variant: "error",
+        title: "등록 실패",
+        description: r.error,
+      });
       return;
     }
-    e.currentTarget.reset();
+    showToast({ variant: "success", title: "픽업 장소가 등록되었습니다" });
+    form.reset();
     router.refresh();
   }
 

@@ -1,5 +1,7 @@
 "use client";
 
+import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
+import { useDashboardToast } from "@/components/dashboard/dashboard-toast";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { deletePickupLocation, updatePickupLocation } from "./actions";
@@ -16,8 +18,10 @@ export type PickupRow = {
 
 export function PickupLocationRow({ row }: { row: PickupRow }) {
   const router = useRouter();
+  const { showToast } = useDashboardToast();
   const [msg, setMsg] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [delOpen, setDelOpen] = useState(false);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -26,26 +30,47 @@ export function PickupLocationRow({ row }: { row: PickupRow }) {
     const r = await updatePickupLocation(fd);
     if (r && "error" in r && r.error) {
       setMsg(r.error);
+      showToast({
+        variant: "error",
+        title: "저장 실패",
+        description: r.error,
+      });
       return;
     }
+    showToast({ variant: "success", title: "변경 사항을 저장했습니다" });
     router.refresh();
   }
 
-  async function onDelete() {
-    if (!confirm(`「${row.name}」을(를) 삭제할까요?`)) return;
+  async function runDelete() {
     setPending(true);
     setMsg(null);
     const r = await deletePickupLocation(row.id);
     setPending(false);
     if (r && "error" in r && r.error) {
       setMsg(r.error);
+      showToast({
+        variant: "error",
+        title: "삭제 실패",
+        description: r.error,
+      });
       return;
     }
+    showToast({ variant: "success", title: "삭제되었습니다" });
+    setDelOpen(false);
     router.refresh();
   }
 
   return (
     <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <ConfirmDialog
+        open={delOpen}
+        onClose={() => !pending && setDelOpen(false)}
+        title="픽업 장소 삭제"
+        description={`「${row.name}」을(를) 삭제할까요?`}
+        confirmLabel="삭제"
+        pending={pending}
+        onConfirm={() => void runDelete()}
+      />
       <form onSubmit={(e) => void onSubmit(e)} className="grid gap-3 sm:grid-cols-2">
         <input type="hidden" name="id" value={row.id} />
         <div className="sm:col-span-2 flex flex-wrap items-start justify-between gap-2">
@@ -59,7 +84,7 @@ export function PickupLocationRow({ row }: { row: PickupRow }) {
           <button
             type="button"
             disabled={pending}
-            onClick={() => void onDelete()}
+            onClick={() => setDelOpen(true)}
             className="text-xs font-medium text-red-600 hover:underline disabled:opacity-50 dark:text-red-400"
           >
             삭제

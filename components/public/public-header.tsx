@@ -66,14 +66,6 @@ export function PublicHeader({ user, profileRole }: Props) {
             </>
           ) : (
             <>
-              {canAdmin ? (
-                <Link
-                  href="/dashboard"
-                  className="rounded-md bg-[#166534] px-2.5 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-[#14532d]"
-                >
-                  관리자 사이트
-                </Link>
-              ) : null}
               <span className="hidden max-w-[9rem] truncate text-[10px] text-[#5c6b63] sm:inline">
                 {user?.email}
               </span>
@@ -81,6 +73,14 @@ export function PublicHeader({ user, profileRole }: Props) {
                 {canAdmin ? "관리자" : "회원"}
               </span>
               <SignOutButton className={compactControl} />
+              {canAdmin ? (
+                <Link
+                  href="/dashboard"
+                  className={`${compactControl} border-[#166534] text-[#166534] hover:bg-[#f0fdf4]`}
+                >
+                  관리자 사이트
+                </Link>
+              ) : null}
             </>
           )}
         </div>

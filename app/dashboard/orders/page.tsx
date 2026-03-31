@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSessionRole } from "@/lib/auth/rbac";
 import { createClient } from "@/lib/supabase/server";
@@ -47,21 +46,13 @@ export default async function OrdersAdminPage() {
 
   return (
     <div className="p-4 md:p-6">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight md:text-2xl">
-            주문 목록
-          </h1>
+      <div className="mb-6">
+        <h1 className="text-xl font-semibold tracking-tight md:text-2xl">
+          주문 목록
+        </h1>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            최근 200건까지 표시합니다. 상세는 Supabase에서 확인할 수 있습니다.
+            최근 200건까지 표시합니다.
           </p>
-        </div>
-        <Link
-          href="/dashboard"
-          className="text-sm font-medium text-emerald-700 hover:underline dark:text-emerald-400"
-        >
-          ← 대시보드
-        </Link>
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">

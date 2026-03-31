@@ -1,5 +1,7 @@
 "use client";
 
+import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
+import { useDashboardToast } from "@/components/dashboard/dashboard-toast";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { deleteProduct, updateProduct } from "./actions";
@@ -8,7 +10,7 @@ export type ProductRow = {
   id: string;
   name: string;
   description: string | null;
-  sku: string | null;
+  quantity: number | null;
   unit_label: string;
   unit_price_krw: number;
   sort_order: number;
@@ -23,8 +25,10 @@ function formatKrw(n: number): string {
 
 export function ProductRow({ row }: { row: ProductRow }) {
   const router = useRouter();
+  const { showToast } = useDashboardToast();
   const [msg, setMsg] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [delOpen, setDelOpen] = useState(false);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -33,28 +37,47 @@ export function ProductRow({ row }: { row: ProductRow }) {
     const r = await updateProduct(fd);
     if (r && "error" in r && r.error) {
       setMsg(r.error);
+      showToast({
+        variant: "error",
+        title: "저장 실패",
+        description: r.error,
+      });
       return;
     }
+    showToast({ variant: "success", title: "상품 정보를 저장했습니다" });
     router.refresh();
   }
 
-  async function onDelete() {
-    if (!confirm(`「${row.name}」을(를) 삭제할까요? 연결된 픽업 재고도 함께 삭제됩니다.`)) {
-      return;
-    }
+  async function runDelete() {
     setPending(true);
     setMsg(null);
     const r = await deleteProduct(row.id);
     setPending(false);
     if (r && "error" in r && r.error) {
       setMsg(r.error);
+      showToast({
+        variant: "error",
+        title: "삭제 실패",
+        description: r.error,
+      });
       return;
     }
+    showToast({ variant: "success", title: "상품이 삭제되었습니다" });
+    setDelOpen(false);
     router.refresh();
   }
 
   return (
     <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <ConfirmDialog
+        open={delOpen}
+        onClose={() => !pending && setDelOpen(false)}
+        title="상품 삭제"
+        description={`「${row.name}」을(를) 삭제할까요? 연결된 픽업 재고도 함께 삭제됩니다.`}
+        confirmLabel="삭제"
+        pending={pending}
+        onConfirm={() => void runDelete()}
+      />
       <form onSubmit={(e) => void onSubmit(e)} className="grid gap-3 sm:grid-cols-2">
         <input type="hidden" name="id" value={row.id} />
         <div className="sm:col-span-2 flex flex-wrap items-start justify-between gap-2">
@@ -68,7 +91,7 @@ export function ProductRow({ row }: { row: ProductRow }) {
           <button
             type="button"
             disabled={pending}
-            onClick={() => void onDelete()}
+            onClick={() => setDelOpen(true)}
             className="text-xs font-medium text-red-600 hover:underline disabled:opacity-50 dark:text-red-400"
           >
             삭제
@@ -98,11 +121,14 @@ export function ProductRow({ row }: { row: ProductRow }) {
         </div>
         <div>
           <label className="mb-1 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
-            SKU
+            수량
           </label>
           <input
-            name="sku"
-            defaultValue={row.sku ?? ""}
+            name="quantity"
+            type="number"
+            min={0}
+            defaultValue={row.quantity ?? ""}
+            placeholder="선택"
             className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
           />
         </div>

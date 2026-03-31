@@ -1,23 +1,32 @@
 "use client";
 
+import { useDashboardToast } from "@/components/dashboard/dashboard-toast";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createProduct } from "./actions";
 
 export function ProductForm() {
   const router = useRouter();
+  const { showToast } = useDashboardToast();
   const [error, setError] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
-    const fd = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const fd = new FormData(form);
     const r = await createProduct(fd);
     if (r && "error" in r && r.error) {
       setError(r.error);
+      showToast({
+        variant: "error",
+        title: "등록 실패",
+        description: r.error,
+      });
       return;
     }
-    e.currentTarget.reset();
+    showToast({ variant: "success", title: "상품이 등록되었습니다" });
+    form.reset();
     router.refresh();
   }
 
@@ -46,10 +55,12 @@ export function ProductForm() {
       </div>
       <div>
         <label className="mb-1 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
-          SKU
+          수량
         </label>
         <input
-          name="sku"
+          name="quantity"
+          type="number"
+          min={0}
           placeholder="선택"
           className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
         />

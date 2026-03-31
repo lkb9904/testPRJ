@@ -3,10 +3,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { useCallback, useEffect, useState } from "react";
 
-/**
- * Supabase MFA(TOTP). 프로젝트에서 MFA를 활성화한 뒤 사용하세요.
- * @see https://supabase.com/docs/guides/auth/auth-mfa
- */
+/** MFA(TOTP) 등록·해제 패널 */
 export function MfaPanel() {
   const [factors, setFactors] = useState<
     { id: string; status: string; friendly_name?: string }[]
@@ -105,8 +102,7 @@ export function MfaPanel() {
         2단계 인증 (TOTP)
       </h2>
       <p className="mt-1 text-xs text-[#5c6b63]">
-        Supabase 대시보드 → Authentication → Multi-Factor 에서 TOTP를 켠 뒤
-        사용합니다.
+        인증 서비스에서 2단계 인증(TOTP)이 켜져 있어야 등록할 수 있습니다.
       </p>
       {err ? (
         <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">

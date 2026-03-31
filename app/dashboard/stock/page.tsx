@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSessionRole } from "@/lib/auth/rbac";
 import { createClient } from "@/lib/supabase/server";
@@ -48,29 +47,13 @@ export default async function StockAdminPage() {
 
   return (
     <div className="p-4 md:p-6">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight md:text-2xl">
-            픽업 장소별 재고
-          </h1>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            장소를 선택한 뒤 상품별 픽업 가능 수량을 입력합니다.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-3 text-sm">
-          <Link
-            href="/dashboard/pickup"
-            className="font-medium text-emerald-700 hover:underline dark:text-emerald-400"
-          >
-            픽업 장소
-          </Link>
-          <Link
-            href="/dashboard/products"
-            className="font-medium text-emerald-700 hover:underline dark:text-emerald-400"
-          >
-            상품
-          </Link>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-xl font-semibold tracking-tight md:text-2xl">
+          픽업 장소별 재고
+        </h1>
+        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+          장소를 선택한 뒤 상품별 픽업 가능 수량을 입력합니다.
+        </p>
       </div>
 
       <section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">

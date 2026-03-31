@@ -19,7 +19,7 @@ export default async function ProductsAdminPage() {
   const { data: rows, error } = await supabase
     .from("products")
     .select(
-      "id, name, description, sku, unit_label, unit_price_krw, sort_order, is_active, image_url, updated_at",
+      "id, name, description, quantity, unit_label, unit_price_krw, sort_order, is_active, image_url, updated_at",
     )
     .order("sort_order", { ascending: true })
     .order("name", { ascending: true });
@@ -36,27 +36,17 @@ export default async function ProductsAdminPage() {
 
   return (
     <div className="p-4 md:p-6">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight md:text-2xl">
-            상품 관리
-          </h1>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            판매 단가·단위·노출 여부를 설정합니다. 픽업 장소별 수량은{' '}
-            <Link href="/dashboard/stock" className="font-medium text-emerald-700 hover:underline dark:text-emerald-400">
-              픽업 재고
-            </Link>
-            에서 입력합니다.
-          </p>
-        </div>
-        <Link
-          href="/pickup"
-          className="text-sm font-medium text-emerald-700 hover:underline dark:text-emerald-400"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          고객 픽업·상품 안내 보기 →
-        </Link>
+      <div className="mb-6">
+        <h1 className="text-xl font-semibold tracking-tight md:text-2xl">
+          상품 관리
+        </h1>
+        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+          판매 단가·단위·노출 여부를 설정합니다. 픽업 장소별 수량은{' '}
+          <Link href="/dashboard/stock" className="font-medium text-emerald-700 hover:underline dark:text-emerald-400">
+            픽업 재고
+          </Link>
+          에서 입력합니다.
+        </p>
       </div>
 
       <section className="mb-10 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">

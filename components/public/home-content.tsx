@@ -20,10 +20,15 @@ export function HomeContent({ user, profileRole }: Props) {
         <h1 className="mt-3 text-3xl font-semibold tracking-tight text-[#14532d] md:text-4xl">
           신선한 과일을 새벽에
         </h1>
-        <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-[#5c6b63]">
-          새벽과일은 당도 좋은 제철 과일을 엄선해 전합니다. 픽업·배송 주문 메뉴에서
-          이용 방법을 확인하세요.
-        </p>
+        <div className="mx-auto mt-4 max-w-xl space-y-2 text-base leading-relaxed text-[#5c6b63] break-keep text-pretty">
+          <p>
+            새벽과일은 당도 좋은 제철 과일을 엄선해 전합니다.
+          </p>
+          <p>
+            <span className="inline-block">픽업·배송 주문 메뉴에서</span>{" "}
+            <span className="inline-block">이용 방법을 확인하세요.</span>
+          </p>
+        </div>
         {!loggedIn ? (
           <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
             <Link
@@ -39,24 +44,16 @@ export function HomeContent({ user, profileRole }: Props) {
               이미 계정이 있어요
             </Link>
           </div>
-        ) : canAdmin ? (
-          <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-            <Link
-              href="/dashboard"
-              className="inline-flex rounded-xl bg-[#166534] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#14532d]"
-            >
-              관리자 사이트 바로가기
-            </Link>
-            <p className="text-xs text-[#5c6b63]">
-              주문·재고·알림은 관리 화면에서 확인할 수 있어요.
-            </p>
-          </div>
-        ) : (
+        ) : !canAdmin ? (
           <div className="mt-10 flex flex-col items-center gap-4">
-            <p className="text-sm text-[#5c6b63]">
-              회원으로 로그인되어 있습니다. 픽업·배송 주문은 각 메뉴에서
-              이어서 진행할 수 있어요.
-            </p>
+            <div className="max-w-md space-y-2 text-sm leading-relaxed text-[#5c6b63] break-keep text-pretty">
+              <p>회원으로 로그인되어 있습니다.</p>
+              <p>
+                픽업·배송 주문은{" "}
+                <span className="inline-block">각 메뉴에서</span>{" "}
+                <span className="inline-block">이어서 진행할 수 있어요.</span>
+              </p>
+            </div>
             <Link
               href="/pickup"
               className="inline-flex rounded-xl border border-[#166534] bg-[#f0fdf4] px-6 py-3 text-sm font-semibold text-[#14532d] hover:bg-[#dcfce7]"
@@ -64,7 +61,7 @@ export function HomeContent({ user, profileRole }: Props) {
               픽업 주문 보러가기
             </Link>
           </div>
-        )}
+        ) : null}
       </section>
 
       <section className="mt-20 grid gap-6 md:grid-cols-3">
@@ -96,8 +93,9 @@ export function HomeContent({ user, profileRole }: Props) {
         ))}
       </section>
 
-      <p className="mt-16 text-center text-xs text-[#7a8a82]">
-        사업자·고객센터 안내는 고객센터 메뉴에서 확인할 수 있어요.
+      <p className="mt-16 text-center text-xs leading-relaxed text-[#7a8a82] break-keep text-pretty">
+        사업자·고객센터 안내는{" "}
+        <span className="inline-block">고객센터 메뉴에서</span> 확인할 수 있어요.
       </p>
     </main>
   );

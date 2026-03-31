@@ -7,7 +7,7 @@ export default function SecurityPage() {
         보안 설정
       </h1>
       <p className="mt-1 text-sm text-[#5c6b63]">
-        2FA(TOTP) 및 세션 정책은 Supabase Auth 설정과 함께 사용합니다.
+        2단계 인증(TOTP)을 등록·해제할 수 있습니다.
       </p>
       <div className="mt-8 max-w-lg">
         <MfaPanel />

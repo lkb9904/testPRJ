@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { DashboardProviders } from "./dashboard-providers";
 import LogoutButton from "./logout-button";
 import { SessionIdleGuard } from "./session-idle-guard";
 
@@ -27,9 +28,8 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  const email = user.email ?? "사용자";
-
   return (
+    <DashboardProviders>
     <div className="flex min-h-screen bg-zinc-100 font-sans text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
       <SessionIdleGuard />
       <aside className="hidden w-56 shrink-0 flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 md:flex">
@@ -52,9 +52,6 @@ export default async function DashboardLayout({
             </Link>
           ))}
         </nav>
-        <div className="mt-auto border-t border-zinc-200 p-3 dark:border-zinc-800">
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">{email}</p>
-        </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -70,15 +67,20 @@ export default async function DashboardLayout({
           <p className="hidden text-sm text-zinc-500 dark:text-zinc-400 md:block">
             관리자 화면
           </p>
-          <div className="flex items-center gap-3">
-            <span className="hidden max-w-[200px] truncate text-xs text-zinc-500 md:inline">
-              {email}
-            </span>
+          <div className="flex items-center gap-2">
             <LogoutButton />
+            <Link
+              href="/"
+              className="inline-flex items-center rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-emerald-700 transition hover:bg-emerald-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-emerald-400 dark:hover:bg-zinc-700"
+              title="고객용 메인 페이지"
+            >
+              메인페이지
+            </Link>
           </div>
         </header>
         <main className="flex-1 overflow-auto">{children}</main>
       </div>
     </div>
+    </DashboardProviders>
   );
 }

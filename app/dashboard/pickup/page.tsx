@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSessionRole } from "@/lib/auth/rbac";
 import { createClient } from "@/lib/supabase/server";
@@ -33,23 +32,13 @@ export default async function PickupAdminPage() {
 
   return (
     <div className="p-4 md:p-6">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight md:text-2xl">
-            픽업 장소 관리
-          </h1>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            고객 픽업·주문에 쓰이는 수령 장소를 등록·수정합니다.
-          </p>
-        </div>
-        <Link
-          href="/pickup"
-          className="text-sm font-medium text-emerald-700 hover:underline dark:text-emerald-400"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          고객 화면(픽업 주문) 보기 →
-        </Link>
+      <div className="mb-6">
+        <h1 className="text-xl font-semibold tracking-tight md:text-2xl">
+          픽업 장소 관리
+        </h1>
+        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+          고객 픽업·주문에 쓰이는 수령 장소를 등록·수정합니다.
+        </p>
       </div>
 
       <section className="mb-10 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">

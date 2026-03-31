@@ -1,5 +1,6 @@
 "use client";
 
+import { useDashboardToast } from "@/components/dashboard/dashboard-toast";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { upsertPickupStock } from "./actions";
@@ -34,6 +35,7 @@ export function StockEditor({
   initialLocationId: string | null;
 }) {
   const router = useRouter();
+  const { showToast } = useDashboardToast();
   const [locationId, setLocationId] = useState(
     initialLocationId ?? locations[0]?.id ?? "",
   );
@@ -58,8 +60,14 @@ export function StockEditor({
     const r = await upsertPickupStock(fd);
     if (r && "error" in r && r.error) {
       setMsg(r.error);
+      showToast({
+        variant: "error",
+        title: "저장 실패",
+        description: r.error,
+      });
       return;
     }
+    showToast({ variant: "success", title: "픽업 재고를 저장했습니다" });
     router.refresh();
   }
 

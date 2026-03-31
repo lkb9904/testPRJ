@@ -1,5 +1,6 @@
 "use client";
 
+import { useDashboardToast } from "@/components/dashboard/dashboard-toast";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { resolveInventoryAlert } from "./actions";
@@ -22,6 +23,7 @@ const severityClass: Record<string, string> = {
 
 export function AlertList({ rows }: { rows: AlertRow[] }) {
   const router = useRouter();
+  const { showToast } = useDashboardToast();
   const [msg, setMsg] = useState<string | null>(null);
 
   async function resolve(id: string) {
@@ -29,8 +31,14 @@ export function AlertList({ rows }: { rows: AlertRow[] }) {
     const r = await resolveInventoryAlert(id);
     if (r && "error" in r && r.error) {
       setMsg(r.error);
+      showToast({
+        variant: "error",
+        title: "처리 실패",
+        description: r.error,
+      });
       return;
     }
+    showToast({ variant: "success", title: "처리 완료로 표시했습니다" });
     router.refresh();
   }
 

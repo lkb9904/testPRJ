@@ -12,7 +12,14 @@ export async function createProduct(formData: FormData) {
   if (!name) return { error: "상품명을 입력해 주세요." };
 
   const description = formData.get("description")?.toString().trim() || null;
-  const sku = formData.get("sku")?.toString().trim() || null;
+  const qtyRaw = formData.get("quantity")?.toString().trim();
+  const quantity =
+    qtyRaw === "" || qtyRaw === undefined
+      ? null
+      : Math.max(0, Math.floor(Number(qtyRaw)));
+  if (qtyRaw !== "" && qtyRaw !== undefined && !Number.isFinite(quantity)) {
+    return { error: "수량은 숫자로 입력해 주세요." };
+  }
   const unit_label = formData.get("unit_label")?.toString().trim() || "박스";
   const unit_price_krw = Math.max(
     0,
@@ -26,7 +33,7 @@ export async function createProduct(formData: FormData) {
   const { error } = await supabase.from("products").insert({
     name,
     description,
-    sku: sku || null,
+    quantity,
     unit_label,
     unit_price_krw,
     sort_order: Number.isFinite(sort_order) ? sort_order : 0,
@@ -51,7 +58,14 @@ export async function updateProduct(formData: FormData) {
   if (!name) return { error: "상품명을 입력해 주세요." };
 
   const description = formData.get("description")?.toString().trim() || null;
-  const sku = formData.get("sku")?.toString().trim() || null;
+  const qtyRaw = formData.get("quantity")?.toString().trim();
+  const quantity =
+    qtyRaw === "" || qtyRaw === undefined
+      ? null
+      : Math.max(0, Math.floor(Number(qtyRaw)));
+  if (qtyRaw !== "" && qtyRaw !== undefined && !Number.isFinite(quantity)) {
+    return { error: "수량은 숫자로 입력해 주세요." };
+  }
   const unit_label = formData.get("unit_label")?.toString().trim() || "박스";
   const unit_price_krw = Math.max(
     0,
@@ -67,7 +81,7 @@ export async function updateProduct(formData: FormData) {
     .update({
       name,
       description,
-      sku: sku || null,
+      quantity,
       unit_label,
       unit_price_krw,
       sort_order: Number.isFinite(sort_order) ? sort_order : 0,

@@ -1,5 +1,6 @@
 "use client";
 
+import { useDashboardToast } from "@/components/dashboard/dashboard-toast";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createInventoryAlert } from "./actions";
@@ -12,18 +13,26 @@ export function AlertForm({
   locations: { id: string; name: string }[];
 }) {
   const router = useRouter();
+  const { showToast } = useDashboardToast();
   const [error, setError] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
-    const fd = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const fd = new FormData(form);
     const r = await createInventoryAlert(fd);
     if (r && "error" in r && r.error) {
       setError(r.error);
+      showToast({
+        variant: "error",
+        title: "등록 실패",
+        description: r.error,
+      });
       return;
     }
-    e.currentTarget.reset();
+    showToast({ variant: "success", title: "알림이 등록되었습니다" });
+    form.reset();
     router.refresh();
   }
 
