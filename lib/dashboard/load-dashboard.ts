@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { headers } from "next/headers";
+import { logger } from "@/lib/logger";
 
 export type DashboardOrderRow = {
   order_number: string;
@@ -57,13 +59,15 @@ export async function loadDashboardData(): Promise<{
   recentOrders: DashboardOrderRow[];
   error: string | null;
 }> {
+  const requestId = (await headers()).get("x-request-id") ?? undefined;
   const supabase = await createClient();
 
   const { data: ordersAll, error: ordersErr } = await supabase
-    .from("orders")
+    .from("v_dashboard_orders")
     .select("order_number, product_name, status, amount_krw, created_at");
 
   if (ordersErr) {
+    logger.error("dashboard.v_dashboard_orders", ordersErr, { requestId });
     return {
       stats: {
         todayOrders: 0,
@@ -73,7 +77,8 @@ export async function loadDashboardData(): Promise<{
         yesterdayOrders: 0,
       },
       recentOrders: [],
-      error: ordersErr.message,
+      error:
+        "데이터를 불러오지 못했습니다. 잠시 후 다시 시도하거나 관리자에게 문의해 주세요.",
     };
   }
 
@@ -100,6 +105,10 @@ export async function loadDashboardData(): Promise<{
   const { count: inventoryAlertCount, error: invErr } = await supabase
     .from("inventory_alerts")
     .select("*", { count: "exact", head: true });
+
+  if (invErr) {
+    logger.error("dashboard.inventory_alerts_count", invErr, { requestId });
+  }
 
   const recentOrders = [...orders]
     .sort(

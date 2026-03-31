@@ -47,9 +47,9 @@ export default async function DashboardPage() {
         <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
           Supabase의{" "}
           <code className="rounded bg-zinc-200 px-1 text-xs dark:bg-zinc-800">
-            orders
-          </code>
-          ,{" "}
+            v_dashboard_orders
+          </code>{" "}
+          뷰와{" "}
           <code className="rounded bg-zinc-200 px-1 text-xs dark:bg-zinc-800">
             inventory_alerts
           </code>{" "}
@@ -64,13 +64,11 @@ export default async function DashboardPage() {
             <p className="mt-1 text-amber-800/90 dark:text-amber-200/90">
               {error}
             </p>
-            <p className="mt-2 text-xs">
-              Supabase SQL Editor에서{" "}
-              <code className="rounded bg-amber-100 px-1 dark:bg-amber-900/80">
-                supabase/migrations/20260331000000_dashboard.sql
-              </code>{" "}
-              내용을 실행해 테이블을 만든 뒤 새로고침하세요.
-            </p>
+            {process.env.NODE_ENV === "development" ? (
+              <p className="mt-2 text-xs">
+                개발 모드: Supabase 마이그레이션 적용 여부와 RLS 권한을 확인하세요.
+              </p>
+            ) : null}
           </div>
         ) : null}
       </div>

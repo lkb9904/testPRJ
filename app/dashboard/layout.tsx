@@ -2,9 +2,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import LogoutButton from "./logout-button";
+import { SessionIdleGuard } from "./session-idle-guard";
 
 const nav = [
   { href: "/dashboard", label: "대시보드" },
+  { href: "/dashboard/security", label: "보안" },
   { href: "/dashboard", label: "주문", disabled: true },
   { href: "/dashboard", label: "상품", disabled: true },
   { href: "/dashboard", label: "설정", disabled: true },
@@ -28,13 +30,14 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex min-h-screen bg-zinc-100 font-sans text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+      <SessionIdleGuard />
       <aside className="hidden w-56 shrink-0 flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 md:flex">
         <div className="flex h-14 items-center border-b border-zinc-200 px-4 dark:border-zinc-800">
           <Link
             href="/dashboard"
             className="text-sm font-semibold tracking-tight text-emerald-700 dark:text-emerald-400"
           >
-            과일샵 관리
+            새벽과일
           </Link>
         </div>
         <nav className="flex flex-col gap-0.5 p-2">
@@ -70,7 +73,7 @@ export default async function DashboardLayout({
               href="/dashboard"
               className="text-sm font-semibold text-emerald-700 dark:text-emerald-400"
             >
-              과일샵
+              새벽과일
             </Link>
           </div>
           <p className="hidden text-sm text-zinc-500 dark:text-zinc-400 md:block">

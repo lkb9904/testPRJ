@@ -1,16 +1,48 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 export default function LoginForm() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const err = searchParams.get("error");
+  const reason = searchParams.get("reason");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  async function signInWithEmail(e: React.FormEvent) {
+    e.preventDefault();
+    setFormError(null);
+    setLoading(true);
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
+    setLoading(false);
+    if (error) {
+      if (error.message.includes("Invalid login credentials")) {
+        setFormError("이메일 또는 비밀번호가 올바르지 않습니다.");
+      } else if (error.message.includes("Email not confirmed")) {
+        setFormError("이메일 인증을 완료한 뒤 다시 시도해 주세요.");
+      } else {
+        setFormError(error.message);
+      }
+      return;
+    }
+    router.push("/dashboard");
+    router.refresh();
+  }
 
   async function signInWithGoogle() {
-    setLoading(true);
+    setOauthLoading(true);
+    setFormError(null);
     const baseUrl =
       process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
     const supabase = createClient();
@@ -21,23 +53,89 @@ export default function LoginForm() {
       },
     });
     if (error) {
-      setLoading(false);
+      setOauthLoading(false);
       console.error(error);
+      setFormError("Google 로그인을 시작할 수 없습니다.");
     }
   }
 
   return (
-    <div className="w-full max-w-sm space-y-6">
+    <div className="w-full space-y-6">
+      {reason === "idle" ? (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          장시간 사용이 없어 보안을 위해 로그아웃되었습니다. 다시 로그인해 주세요.
+        </p>
+      ) : null}
       {err === "auth" ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200">
+        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
           로그인에 실패했습니다. Supabase에서 Google 로그인 설정을 확인하세요.
         </p>
       ) : null}
+      {formError ? (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+          {formError}
+        </p>
+      ) : null}
+
+      <form onSubmit={(e) => void signInWithEmail(e)} className="space-y-4">
+        <div>
+          <label
+            htmlFor="login-email"
+            className="mb-1 block text-sm font-medium text-[#374151]"
+          >
+            이메일
+          </label>
+          <input
+            id="login-email"
+            type="email"
+            required
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full rounded-xl border border-[#d1ddd6] bg-[#fafdfb] px-3 py-2.5 text-sm outline-none ring-[#166534]/20 transition placeholder:text-[#9ca8a2] focus:border-[#166534] focus:ring-2"
+            placeholder="you@example.com"
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="login-password"
+            className="mb-1 block text-sm font-medium text-[#374151]"
+          >
+            비밀번호
+          </label>
+          <input
+            id="login-password"
+            type="password"
+            required
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full rounded-xl border border-[#d1ddd6] bg-[#fafdfb] px-3 py-2.5 text-sm outline-none ring-[#166534]/20 transition focus:border-[#166534] focus:ring-2"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded-xl bg-[#166534] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#14532d] disabled:opacity-60"
+        >
+          {loading ? "로그인 중…" : "로그인"}
+        </button>
+      </form>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-[#dfe8e2]" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase tracking-wide">
+          <span className="bg-white px-2 text-[#7a8a82]">또는</span>
+        </div>
+      </div>
+
       <button
         type="button"
         onClick={() => void signInWithGoogle()}
-        disabled={loading}
-        className="flex w-full items-center justify-center gap-3 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-800 shadow-sm transition hover:bg-zinc-50 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+        disabled={oauthLoading || loading}
+        className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#d1ddd6] bg-white px-4 py-3 text-sm font-medium text-[#374151] shadow-sm transition hover:bg-[#f4faf7] disabled:opacity-60"
       >
         <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden>
           <path
@@ -57,12 +155,21 @@ export default function LoginForm() {
             d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
           />
         </svg>
-        {loading ? "연결 중…" : "Google로 계속하기"}
+        {oauthLoading ? "연결 중…" : "Google로 계속하기"}
       </button>
-      <p className="text-center text-xs text-zinc-500 dark:text-zinc-400">
-        Supabase 대시보드 → Authentication → Providers에서 Google을 켜고,
-        <br />
-        Google Cloud OAuth 클라이언트를 연결해야 합니다.
+
+      <p className="text-center text-sm text-[#5c6b63]">
+        아직 계정이 없으신가요?{" "}
+        <Link
+          href="/signup"
+          className="font-medium text-[#166534] underline-offset-2 hover:underline"
+        >
+          회원가입
+        </Link>
+      </p>
+
+      <p className="text-center text-xs leading-relaxed text-[#7a8a82]">
+        Google 로그인은 Supabase 대시보드에서 Provider를 활성화해야 합니다.
       </p>
     </div>
   );

@@ -40,3 +40,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# supabase — CLI 캐시·마이그레이션 폴더 내 임시/MCP 산출물 (타임스탬프 SQL만 커밋)
+supabase/.temp/
+supabase/migrations/_*
+supabase/migrations/mcp_*.json
