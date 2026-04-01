@@ -35,6 +35,8 @@ export function PickupOrderClient({
   const [pending, setPending] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [successOrder, setSuccessOrder] = useState<string | null>(null);
+  const [guestName, setGuestName] = useState("");
+  const [guestPhone, setGuestPhone] = useState("");
 
   const available = useMemo(() => {
     const m = new Map<string, number>();
@@ -61,10 +63,6 @@ export function PickupOrderClient({
   async function submit() {
     setMsg(null);
     setSuccessOrder(null);
-    if (!user) {
-      setMsg("로그인이 필요합니다.");
-      return;
-    }
     if (!locationId) {
       setMsg("픽업 장소를 선택해 주세요.");
       return;
@@ -80,13 +78,21 @@ export function PickupOrderClient({
     for (const row of cartLines.lines) {
       const max = available.get(row.product.id) ?? 0;
       if (row.q > max) {
-        setMsg(`「${row.product.name}」은(는) 최대 ${max}${row.product.unit_label}까지 주문할 수 있습니다.`);
+        setMsg(
+          `「${row.product.name}」은(는) 최대 ${max}${row.product.unit_label}까지 주문할 수 있습니다.`,
+        );
         return;
       }
     }
 
     setPending(true);
-    const r = await placePickupOrder({ pickupLocationId: locationId, items });
+    const r = await placePickupOrder({
+      pickupLocationId: locationId,
+      items,
+      ...(user
+        ? {}
+        : { guestName: guestName.trim(), guestPhone: guestPhone.trim() }),
+    });
     setPending(false);
 
     if ("error" in r && r.error) {
@@ -96,11 +102,19 @@ export function PickupOrderClient({
     if ("ok" in r && r.ok) {
       setSuccessOrder(r.orderNumber);
       setQty({});
+      if (!user) {
+        setGuestName("");
+        setGuestPhone("");
+      }
       router.refresh();
       return;
     }
     setMsg("주문 처리에 실패했습니다.");
   }
+
+  const guestOk =
+    user != null ||
+    (guestName.trim().length >= 2 && guestPhone.trim().length >= 9);
 
   if (locations.length === 0 || products.length === 0) {
     return null;
@@ -110,19 +124,48 @@ export function PickupOrderClient({
     <section className="mt-10">
       <h2 className="text-sm font-semibold text-[#14532d]">픽업 장소 선택 · 수량 담기</h2>
       <p className="mt-2 text-sm text-[#5c6b63]">
-        장소를 고른 뒤 상품별 수량을 입력하고 주문하기를 누르면 주문이 접수됩니다.
+        비회원도 이름·연락처만 입력하면 주문할 수 있어요. 회원이면 로그인 상태로
+        주문하면 동일 계정에 연결됩니다.
       </p>
 
       {!user ? (
-        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50/90 px-4 py-3 text-sm text-amber-950">
-          픽업 주문은 <strong>로그인 후</strong> 이용할 수 있습니다.{" "}
-          <Link href="/login" className="font-medium text-[#166534] underline">
-            로그인
-          </Link>
-          {" · "}
-          <Link href="/signup" className="font-medium text-[#166534] underline">
-            회원가입
-          </Link>
+        <div className="mt-4 space-y-3 rounded-xl border border-[#dfe8e2] bg-white p-4 shadow-sm">
+          <p className="text-xs font-medium text-[#14532d]">비회원 주문 · 연락처</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-[#374151]">
+                이름 <span className="text-red-600">*</span>
+              </label>
+              <input
+                type="text"
+                value={guestName}
+                onChange={(e) => setGuestName(e.target.value)}
+                placeholder="홍길동"
+                autoComplete="name"
+                className="w-full rounded-lg border border-[#d1ddd6] px-3 py-2 text-sm text-[#374151]"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-[#374151]">
+                휴대폰 <span className="text-red-600">*</span>
+              </label>
+              <input
+                type="tel"
+                value={guestPhone}
+                onChange={(e) => setGuestPhone(e.target.value)}
+                placeholder="01012345678"
+                autoComplete="tel"
+                className="w-full rounded-lg border border-[#d1ddd6] px-3 py-2 text-sm text-[#374151]"
+              />
+            </div>
+          </div>
+          <p className="text-xs text-[#7a8a82]">
+            이미 회원이시면{" "}
+            <Link href="/login" className="font-medium text-[#166534] underline">
+              로그인
+            </Link>
+            후 주문해 주세요.
+          </p>
         </div>
       ) : null}
 
@@ -177,7 +220,7 @@ export function PickupOrderClient({
                         type="number"
                         min={0}
                         max={max}
-                        disabled={max <= 0 || !user}
+                        disabled={max <= 0}
                         value={v || ""}
                         placeholder="0"
                         onChange={(e) => {
@@ -206,7 +249,11 @@ export function PickupOrderClient({
           </p>
           <button
             type="button"
-            disabled={pending || !user || cartLines.lines.length === 0}
+            disabled={
+              pending ||
+              cartLines.lines.length === 0 ||
+              !guestOk
+            }
             onClick={() => void submit()}
             className="inline-flex items-center justify-center rounded-lg bg-[#166534] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#14532d] disabled:opacity-50"
           >

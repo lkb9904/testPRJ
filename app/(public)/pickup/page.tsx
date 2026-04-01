@@ -52,8 +52,8 @@ export default async function PickupPage() {
         매장·지정 장소에서 픽업
       </h1>
       <p className="mt-4 text-[#5c6b63] leading-relaxed">
-        픽업 장소를 고른 뒤 상품 수량을 입력하고 주문하기를 누르면 주문이 접수됩니다. 결제·픽업
-        안내는 순차적으로 연락드릴 예정입니다.
+        비회원은 이름·휴대폰만 입력하면 주문할 수 있고, 회원은 로그인 후 주문하면
+        계정에 연결됩니다. 결제·픽업 안내는 순차적으로 연락드릴 예정입니다.
       </p>
 
       <div
@@ -63,12 +63,8 @@ export default async function PickupPage() {
         <p className="font-medium text-[#14532d]">안내</p>
         <ul className="mt-2 list-inside list-disc space-y-1 text-[#5c6b63]">
           <li>
-            <strong className="text-[#374151]">로그인한 회원</strong>만 픽업 주문을 제출할 수
-            있습니다.
-          </li>
-          <li>
-            장소별 <strong className="text-[#374151]">픽업 가능 수량</strong>을 넘기면 주문되지
-            않습니다.
+            장소별 <strong className="text-[#374151]">픽업 가능 수량</strong>을 넘기면
+            주문되지 않습니다.
           </li>
           {canManageStock ? (
             <li>
@@ -128,25 +124,20 @@ export default async function PickupPage() {
         </li>
       </ol>
 
-      {!user ? (
-        <div className="mt-12 rounded-2xl border border-dashed border-[#c5d4cc] bg-white/80 p-6 text-center text-sm text-[#5c6b63]">
-          이미 회원이시면 로그인 후 위에서 바로 주문할 수 있습니다.
-          <div className="mt-4 flex flex-wrap justify-center gap-3">
-            <Link
-              href="/login"
-              className="inline-flex rounded-lg bg-[#166534] px-4 py-2 text-sm font-medium text-white hover:bg-[#14532d]"
-            >
-              로그인
-            </Link>
-            <Link
-              href="/"
-              className="inline-flex rounded-lg border border-[#d1ddd6] px-4 py-2 text-sm font-medium text-[#374151] hover:bg-[#fafdfb]"
-            >
-              홈으로
-            </Link>
-          </div>
-        </div>
-      ) : null}
+      <div className="mt-10 flex flex-wrap justify-center gap-3 text-sm">
+        <Link
+          href="/"
+          className="inline-flex rounded-lg border border-[#d1ddd6] px-4 py-2 font-medium text-[#374151] hover:bg-[#fafdfb]"
+        >
+          쇼핑 홈
+        </Link>
+        <Link
+          href="/delivery"
+          className="inline-flex rounded-lg border border-[#d1ddd6] px-4 py-2 font-medium text-[#374151] hover:bg-[#fafdfb]"
+        >
+          배송 안내
+        </Link>
+      </div>
     </main>
   );
 }

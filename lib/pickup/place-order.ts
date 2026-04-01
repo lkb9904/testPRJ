@@ -6,7 +6,14 @@ import { revalidatePath } from "next/cache";
 export type PlacePickupInput = {
   pickupLocationId: string;
   items: { productId: string; quantity: number }[];
+  /** 비회원 주문 시 필수 (이름·휴대폰) */
+  guestName?: string;
+  guestPhone?: string;
 };
+
+function normalizePhone(s: string): string {
+  return s.replace(/\s/g, "").replace(/-/g, "");
+}
 
 export async function placePickupOrder(input: PlacePickupInput) {
   const merged = new Map<string, number>();
@@ -26,12 +33,45 @@ export async function placePickupOrder(input: PlacePickupInput) {
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("place_pickup_order", {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const guestName = input.guestName?.trim() ?? "";
+  const guestPhone = normalizePhone(input.guestPhone ?? "");
+
+  if (!user) {
+    if (guestName.length < 2) {
+      return { error: "이름을 2자 이상 입력해 주세요." };
+    }
+    if (guestPhone.length < 9 || !/^[0-9+]+$/.test(guestPhone)) {
+      return { error: "연락처(휴대폰)를 올바르게 입력해 주세요." };
+    }
+  }
+
+  const rpcPayload: Record<string, unknown> = {
     p_pickup_location_id: input.pickupLocationId,
     p_items: items,
-  });
+  };
+
+  if (!user && guestName && guestPhone) {
+    rpcPayload.p_guest_name = guestName;
+    rpcPayload.p_guest_phone = guestPhone;
+  }
+
+  const { data, error } = await supabase.rpc("place_pickup_order", rpcPayload);
 
   if (error) {
+    if (
+      error.message.includes("Could not find the function") ||
+      error.message.includes("does not exist") ||
+      error.code === "PGRST202"
+    ) {
+      return {
+        error:
+          "비회원 주문을 쓰려면 Supabase의 place_pickup_order 함수에 p_guest_name, p_guest_phone 인자를 추가해야 합니다. 저장소의 supabase/migrations 안내를 참고하세요.",
+      };
+    }
     return { error: error.message };
   }
 

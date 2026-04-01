@@ -1,102 +1,125 @@
 import Link from "next/link";
-import type { User } from "@supabase/supabase-js";
 import { isStaffOrAdmin, type ProfileRole } from "@/lib/auth/profile-role";
+import { HomeHeroCarousel } from "@/components/public/home-hero-carousel";
+import { HomeScrollFab } from "@/components/public/home-scroll-fab";
 
-type Props = {
-  user: User | null;
-  profileRole: ProfileRole | null;
+export type ProductRow = {
+  id: string;
+  name: string;
+  unit_label: string;
+  unit_price_krw: number;
+  image_url: string | null;
 };
 
-export function HomeContent({ user, profileRole }: Props) {
-  const loggedIn = Boolean(user);
+type Props = {
+  profileRole: ProfileRole | null;
+  products: ProductRow[];
+  listedAtLabel: string;
+};
+
+function formatWonFigure(krw: number): string {
+  return new Intl.NumberFormat("ko-KR").format(krw);
+}
+
+export function HomeContent({ profileRole, products, listedAtLabel }: Props) {
   const canAdmin = profileRole != null && isStaffOrAdmin(profileRole);
 
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-16">
-      <section className="text-center">
-        <p className="text-sm font-medium uppercase tracking-widest text-[#166534]">
-          Dawn Fresh
-        </p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-[#14532d] md:text-4xl">
-          신선한 과일을 새벽에
-        </h1>
-        <div className="mx-auto mt-4 max-w-xl space-y-2 text-base leading-relaxed text-[#5c6b63] break-keep text-pretty">
-          <p>
-            새벽과일은 당도 좋은 제철 과일을 엄선해 전합니다.
-          </p>
-          <p>
-            <span className="inline-block">픽업·배송 주문 메뉴에서</span>{" "}
-            <span className="inline-block">이용 방법을 확인하세요.</span>
-          </p>
-        </div>
-        {!loggedIn ? (
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-            <Link
-              href="/signup"
-              className="inline-flex rounded-xl bg-[#166534] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#14532d]"
-            >
-              무료 회원가입
-            </Link>
-            <Link
-              href="/login"
-              className="inline-flex rounded-xl border border-[#d1ddd6] bg-white px-6 py-3 text-sm font-medium text-[#374151] hover:bg-[#fafdfb]"
-            >
-              이미 계정이 있어요
-            </Link>
-          </div>
-        ) : !canAdmin ? (
-          <div className="mt-10 flex flex-col items-center gap-4">
-            <div className="max-w-md space-y-2 text-sm leading-relaxed text-[#5c6b63] break-keep text-pretty">
-              <p>회원으로 로그인되어 있습니다.</p>
-              <p>
-                픽업·배송 주문은{" "}
-                <span className="inline-block">각 메뉴에서</span>{" "}
-                <span className="inline-block">이어서 진행할 수 있어요.</span>
-              </p>
+    <div className="relative bg-white">
+      <HomeHeroCarousel />
+
+      <section id="today" className="scroll-mt-36 border-t border-[#eef2ee] bg-white pb-10 pt-6">
+        <div className="mx-auto max-w-5xl px-4">
+          <div className="flex items-end justify-between gap-3">
+            <h2 className="text-lg font-bold tracking-tight text-[#1a1f1c] sm:text-xl">
+              오늘의 당도
+            </h2>
+            <div className="flex items-center gap-1 text-[11px] text-[#7a8a82] sm:text-xs">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="shrink-0 opacity-70"
+                aria-hidden
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 6v6l4 2" />
+              </svg>
+              <span>{listedAtLabel}</span>
             </div>
+          </div>
+
+          {products.length === 0 ? (
+            <div className="mt-8 rounded-2xl border border-dashed border-[#c5d4cc] bg-[#fafdfb] py-14 text-center text-sm text-[#5c6b63]">
+              등록된 상품이 없습니다.
+            </div>
+          ) : (
+            <div className="mt-5 -mx-4 flex overflow-x-auto pb-2 pl-4 pr-4 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden">
+              <ul className="flex min-w-min gap-0">
+                {products.map((p, idx) => (
+                  <li
+                    key={p.id}
+                    className={`flex w-[42vw] max-w-[168px] shrink-0 flex-col sm:w-40 ${
+                      idx > 0 ? "border-l border-[#e8ece9]" : ""
+                    }`}
+                  >
+                    <Link
+                      href="/pickup"
+                      className="flex flex-col px-3 pb-2 pt-1 transition-opacity hover:opacity-90"
+                    >
+                      <div className="relative mx-auto aspect-square w-full max-w-[140px] overflow-hidden rounded-xl bg-[#f4f6f5]">
+                        {p.image_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={p.image_url}
+                            alt=""
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#e8f0eb] to-[#d1ddd6] text-3xl font-bold text-[#166534]/35">
+                            {p.name.slice(0, 1)}
+                          </div>
+                        )}
+                      </div>
+                      <p className="mt-2.5 line-clamp-2 min-h-[2.5rem] text-center text-[13px] font-medium leading-snug text-[#1a1f1c]">
+                        {p.name}
+                      </p>
+                      <p className="mt-1 text-center text-2xl font-bold tabular-nums tracking-tight text-[#1a1f1c]">
+                        {formatWonFigure(p.unit_price_krw)}
+                      </p>
+                      <p className="mt-0.5 text-center text-[11px] text-[#9ca3a0]">
+                        기준 {p.unit_label}
+                      </p>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="mt-6 flex justify-center">
             <Link
               href="/pickup"
-              className="inline-flex rounded-xl border border-[#166534] bg-[#f0fdf4] px-6 py-3 text-sm font-semibold text-[#14532d] hover:bg-[#dcfce7]"
+              className="inline-flex rounded-full border border-[#1a1f1c] px-5 py-2 text-sm font-medium text-[#1a1f1c] hover:bg-[#fafdfb]"
             >
-              픽업 주문 보러가기
+              전체 상품 보기
             </Link>
           </div>
-        ) : null}
+        </div>
       </section>
 
-      <section className="mt-20 grid gap-6 md:grid-cols-3">
-        {[
-          {
-            title: "새벽 배송",
-            desc: "주문 마감 후 새벽 도착을 목표로 준비 중입니다.",
-          },
-          {
-            title: "당도 케어",
-            desc: "시즌별로 맛있는 품목을 골라 소개할 예정입니다.",
-          },
-          {
-            title: "매장·픽업",
-            desc: "픽업 장소와 공동구매 일정은 공지로 안내합니다.",
-          },
-        ].map((item) => (
-          <div
-            key={item.title}
-            className="rounded-2xl border border-[#dfe8e2] bg-white/90 p-6 shadow-sm"
-          >
-            <h2 className="text-sm font-semibold text-[#14532d]">
-              {item.title}
-            </h2>
-            <p className="mt-2 text-sm leading-relaxed text-[#5c6b63]">
-              {item.desc}
-            </p>
-          </div>
-        ))}
-      </section>
+      {canAdmin ? (
+        <p className="pb-8 text-center text-xs text-[#9ca3a0]">
+          <Link href="/dashboard" className="underline-offset-2 hover:underline">
+            관리자
+          </Link>
+        </p>
+      ) : null}
 
-      <p className="mt-16 text-center text-xs leading-relaxed text-[#7a8a82] break-keep text-pretty">
-        사업자·고객센터 안내는{" "}
-        <span className="inline-block">고객센터 메뉴에서</span> 확인할 수 있어요.
-      </p>
-    </main>
+      <HomeScrollFab />
+    </div>
   );
 }
