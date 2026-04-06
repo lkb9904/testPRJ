@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { isStaffOrAdmin, type ProfileRole } from "@/lib/auth/profile-role";
 import type { ProductCard as ProductCardType } from "@/lib/types/product";
+import type { BrixWithProduct } from "@/lib/types/brix";
 import { ProductCard } from "@/components/public/product-card";
 import { HomeHeroCarousel } from "@/components/public/home-hero-carousel";
+import { HomeBrixSection } from "@/components/public/home-brix-section";
 import { HomeScrollFab } from "@/components/public/home-scroll-fab";
 
 type Banner = {
@@ -25,9 +27,10 @@ type Props = {
   banners: Banner[];
   products: ProductCardType[];
   categories: Category[];
+  brixMeasurements: BrixWithProduct[];
 };
 
-export function HomeContent({ profileRole, banners, products, categories }: Props) {
+export function HomeContent({ profileRole, banners, products, categories, brixMeasurements }: Props) {
   const canAdmin = profileRole != null && isStaffOrAdmin(profileRole);
 
   const bestProducts = products.slice(0, 8);
@@ -37,6 +40,9 @@ export function HomeContent({ profileRole, banners, products, categories }: Prop
     <div className="relative bg-white">
       {/* Hero banners */}
       <HomeHeroCarousel banners={banners} />
+
+      {/* Brix section */}
+      <HomeBrixSection measurements={brixMeasurements} />
 
       {/* Best ranking */}
       <section className="border-t border-[#eef2ee] bg-white py-10">

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { useCart, type CartItem } from "@/lib/cart/cart-context";
 import { createClient as createBrowserClient } from "@/lib/supabase/client";
@@ -26,19 +26,19 @@ export function CheckoutClient({ user, locations }: { user: User | null; locatio
   const [products, setProducts] = useState<Map<string, ProductInfo>>(new Map());
   const [loading, setLoading] = useState(true);
 
-  // "바로 주문" URL params: ?product=ID&qty=N&weight=LABEL
   const buyNowProductId = searchParams.get("product");
   const buyNowQty = Math.max(1, Number(searchParams.get("qty") ?? 1));
   const buyNowWeight = searchParams.get("weight") || null;
-
   const isBuyNow = Boolean(buyNowProductId);
 
-  const items: CartItem[] = useMemo(() => {
-    if (isBuyNow && buyNowProductId) {
-      return [{ productId: buyNowProductId, quantity: buyNowQty, weightOption: buyNowWeight }];
-    }
-    return cartItems;
-  }, [isBuyNow, buyNowProductId, buyNowQty, buyNowWeight, cartItems]);
+  const buyNowItemsRef = useRef<CartItem[] | null>(null);
+  if (isBuyNow && buyNowProductId) {
+    buyNowItemsRef.current = [
+      { productId: buyNowProductId, quantity: buyNowQty, weightOption: buyNowWeight },
+    ];
+  }
+
+  const items: CartItem[] = buyNowItemsRef.current ?? cartItems;
 
   const [orderType, setOrderType] = useState<"pickup" | "delivery">("delivery");
   const [pickupLocationId, setPickupLocationId] = useState(locations[0]?.id ?? "");
@@ -53,9 +53,19 @@ export function CheckoutClient({ user, locations }: { user: User | null; locatio
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchedIdsRef = useRef<string>("");
+
   useEffect(() => {
-    if (items.length === 0) { setLoading(false); return; }
+    if (items.length === 0) {
+      setLoading(false);
+      return;
+    }
     const ids = [...new Set(items.map((i) => i.productId))];
+    const idsKey = ids.join(",");
+    if (idsKey === fetchedIdsRef.current) return;
+    fetchedIdsRef.current = idsKey;
+
+    setLoading(true);
     const supabase = createBrowserClient();
     supabase
       .from("products")
@@ -64,7 +74,10 @@ export function CheckoutClient({ user, locations }: { user: User | null; locatio
       .then(({ data }) => {
         const map = new Map<string, ProductInfo>();
         for (const p of data ?? []) {
-          map.set(p.id, { ...p, weight_options: (p.weight_options ?? []) as { label: string; price: number }[] });
+          map.set(p.id, {
+            ...p,
+            weight_options: (p.weight_options ?? []) as { label: string; price: number }[],
+          });
         }
         setProducts(map);
         setLoading(false);
@@ -81,7 +94,10 @@ export function CheckoutClient({ user, locations }: { user: User | null; locatio
     return p.sale_price_krw ?? p.unit_price_krw;
   }
 
-  const totalPrice = items.reduce((s, i) => s + getPrice(i.productId, i.weightOption) * i.quantity, 0);
+  const totalPrice = items.reduce(
+    (s, i) => s + getPrice(i.productId, i.weightOption) * i.quantity,
+    0,
+  );
 
   async function handleSubmit() {
     setError(null);
@@ -121,24 +137,28 @@ export function CheckoutClient({ user, locations }: { user: User | null; locatio
     return (
       <main className="mx-auto w-full max-w-2xl px-4 py-12">
         <h1 className="text-xl font-bold text-[#1a1f1c]">주문하기</h1>
-        <p className="mt-4 text-sm text-[#9ca3a0]">불러오는 중...</p>
+        <p className="mt-4 text-sm text-[#9ca3a0]">상품 정보를 불러오는 중...</p>
       </main>
     );
   }
 
-  if (items.length === 0) {
+  if (items.length === 0 && !isBuyNow) {
     return (
       <main className="mx-auto w-full max-w-2xl px-4 py-12 text-center">
         <h1 className="text-xl font-bold text-[#1a1f1c]">주문하기</h1>
         <p className="mt-4 text-[#5c6b63]">장바구니가 비어있습니다.</p>
-        <Link href="/products" className="mt-4 inline-flex rounded-full bg-[#166534] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#14532d]">
+        <Link
+          href="/products"
+          className="mt-4 inline-flex rounded-full bg-[#166534] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#14532d]"
+        >
           쇼핑하러 가기
         </Link>
       </main>
     );
   }
 
-  const inputCls = "w-full rounded-lg border border-[#dfe8e2] px-3 py-2.5 text-sm text-[#1a1f1c] focus:border-[#166534] focus:outline-none";
+  const inputCls =
+    "w-full rounded-lg border border-[#dfe8e2] px-3 py-2.5 text-sm text-[#1a1f1c] focus:border-[#166534] focus:outline-none";
   const labelCls = "mb-1 block text-xs font-medium text-[#374151]";
 
   return (
@@ -152,15 +172,31 @@ export function CheckoutClient({ user, locations }: { user: User | null; locatio
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <div>
               <label className={labelCls}>이름 *</label>
-              <input type="text" value={guestName} onChange={(e) => setGuestName(e.target.value)} placeholder="홍길동" className={inputCls} />
+              <input
+                type="text"
+                value={guestName}
+                onChange={(e) => setGuestName(e.target.value)}
+                placeholder="홍길동"
+                className={inputCls}
+              />
             </div>
             <div>
               <label className={labelCls}>연락처 *</label>
-              <input type="tel" value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} placeholder="01012345678" className={inputCls} />
+              <input
+                type="tel"
+                value={guestPhone}
+                onChange={(e) => setGuestPhone(e.target.value)}
+                placeholder="01012345678"
+                className={inputCls}
+              />
             </div>
           </div>
           <p className="mt-2 text-xs text-[#9ca3a0]">
-            이미 회원이시면 <Link href="/login" className="text-[#166534] underline">로그인</Link>해 주세요.
+            이미 회원이시면{" "}
+            <Link href="/login" className="text-[#166534] underline">
+              로그인
+            </Link>
+            해 주세요.
           </p>
         </section>
       ) : null}
@@ -194,7 +230,10 @@ export function CheckoutClient({ user, locations }: { user: User | null; locatio
               className={inputCls}
             >
               {locations.map((l) => (
-                <option key={l.id} value={l.id}>{l.name}{l.address ? ` (${l.address})` : ""}</option>
+                <option key={l.id} value={l.id}>
+                  {l.name}
+                  {l.address ? ` (${l.address})` : ""}
+                </option>
               ))}
             </select>
           </div>
@@ -203,25 +242,53 @@ export function CheckoutClient({ user, locations }: { user: User | null; locatio
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
                 <label className={labelCls}>수령인 *</label>
-                <input type="text" value={recipientName} onChange={(e) => setRecipientName(e.target.value)} className={inputCls} />
+                <input
+                  type="text"
+                  value={recipientName}
+                  onChange={(e) => setRecipientName(e.target.value)}
+                  className={inputCls}
+                />
               </div>
               <div>
                 <label className={labelCls}>수령인 연락처 *</label>
-                <input type="tel" value={recipientPhone} onChange={(e) => setRecipientPhone(e.target.value)} placeholder="01012345678" className={inputCls} />
+                <input
+                  type="tel"
+                  value={recipientPhone}
+                  onChange={(e) => setRecipientPhone(e.target.value)}
+                  placeholder="01012345678"
+                  className={inputCls}
+                />
               </div>
             </div>
             <div>
               <label className={labelCls}>주소 *</label>
-              <input type="text" value={addressLine1} onChange={(e) => setAddressLine1(e.target.value)} placeholder="도로명 주소" className={inputCls} />
+              <input
+                type="text"
+                value={addressLine1}
+                onChange={(e) => setAddressLine1(e.target.value)}
+                placeholder="도로명 주소"
+                className={inputCls}
+              />
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
                 <label className={labelCls}>상세주소</label>
-                <input type="text" value={addressLine2} onChange={(e) => setAddressLine2(e.target.value)} placeholder="동/호수" className={inputCls} />
+                <input
+                  type="text"
+                  value={addressLine2}
+                  onChange={(e) => setAddressLine2(e.target.value)}
+                  placeholder="동/호수"
+                  className={inputCls}
+                />
               </div>
               <div>
                 <label className={labelCls}>우편번호</label>
-                <input type="text" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} className={inputCls} />
+                <input
+                  type="text"
+                  value={postalCode}
+                  onChange={(e) => setPostalCode(e.target.value)}
+                  className={inputCls}
+                />
               </div>
             </div>
           </div>
@@ -236,7 +303,10 @@ export function CheckoutClient({ user, locations }: { user: User | null; locatio
             const p = products.get(item.productId);
             const price = getPrice(item.productId, item.weightOption);
             return (
-              <li key={`${item.productId}::${item.weightOption}`} className="flex items-center gap-3 py-3">
+              <li
+                key={`${item.productId}::${item.weightOption}`}
+                className="flex items-center gap-3 py-3"
+              >
                 <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-[#f4f6f5]">
                   {p?.image_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -252,7 +322,9 @@ export function CheckoutClient({ user, locations }: { user: User | null; locatio
                   {item.weightOption ? (
                     <p className="text-xs text-[#9ca3a0]">{item.weightOption}</p>
                   ) : null}
-                  <p className="text-xs text-[#5c6b63]">{formatKrw(price)} x {item.quantity}</p>
+                  <p className="text-xs text-[#5c6b63]">
+                    {formatKrw(price)} x {item.quantity}
+                  </p>
                 </div>
                 <p className="shrink-0 text-sm font-bold tabular-nums text-[#1a1f1c]">
                   {formatKrw(price * item.quantity)}

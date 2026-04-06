@@ -11,6 +11,7 @@ const nav = [
   { href: "/dashboard/products", label: "상품" },
   { href: "/dashboard/stock", label: "픽업 재고" },
   { href: "/dashboard/orders", label: "주문" },
+  { href: "/dashboard/brix", label: "당도 측정" },
   { href: "/dashboard/alerts", label: "재고 알림" },
 ];
 
