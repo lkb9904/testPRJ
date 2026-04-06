@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
-import { useCart } from "@/lib/cart/cart-context";
+import { useCart, type CartItem } from "@/lib/cart/cart-context";
 import { createClient as createBrowserClient } from "@/lib/supabase/client";
 import { placeOrder } from "@/lib/order/place-order";
 import { formatKrw } from "@/lib/types/product";
@@ -15,14 +15,30 @@ type ProductInfo = {
   name: string;
   unit_price_krw: number;
   sale_price_krw: number | null;
+  image_url: string | null;
   weight_options: { label: string; price: number }[];
 };
 
 export function CheckoutClient({ user, locations }: { user: User | null; locations: Loc[] }) {
   const router = useRouter();
-  const { items, clearCart } = useCart();
+  const searchParams = useSearchParams();
+  const { items: cartItems, clearCart } = useCart();
   const [products, setProducts] = useState<Map<string, ProductInfo>>(new Map());
   const [loading, setLoading] = useState(true);
+
+  // "바로 주문" URL params: ?product=ID&qty=N&weight=LABEL
+  const buyNowProductId = searchParams.get("product");
+  const buyNowQty = Math.max(1, Number(searchParams.get("qty") ?? 1));
+  const buyNowWeight = searchParams.get("weight") || null;
+
+  const isBuyNow = Boolean(buyNowProductId);
+
+  const items: CartItem[] = useMemo(() => {
+    if (isBuyNow && buyNowProductId) {
+      return [{ productId: buyNowProductId, quantity: buyNowQty, weightOption: buyNowWeight }];
+    }
+    return cartItems;
+  }, [isBuyNow, buyNowProductId, buyNowQty, buyNowWeight, cartItems]);
 
   const [orderType, setOrderType] = useState<"pickup" | "delivery">("delivery");
   const [pickupLocationId, setPickupLocationId] = useState(locations[0]?.id ?? "");
@@ -43,7 +59,7 @@ export function CheckoutClient({ user, locations }: { user: User | null; locatio
     const supabase = createBrowserClient();
     supabase
       .from("products")
-      .select("id, name, unit_price_krw, sale_price_krw, weight_options")
+      .select("id, name, unit_price_krw, sale_price_krw, image_url, weight_options")
       .in("id", ids)
       .then(({ data }) => {
         const map = new Map<string, ProductInfo>();
@@ -96,7 +112,7 @@ export function CheckoutClient({ user, locations }: { user: User | null; locatio
     }
 
     if ("ok" in result && result.ok) {
-      clearCart();
+      if (!isBuyNow) clearCart();
       router.push(`/order-complete?order=${result.orderNumber}`);
     }
   }
@@ -215,16 +231,32 @@ export function CheckoutClient({ user, locations }: { user: User | null; locatio
       {/* Order items summary */}
       <section className="mt-6 rounded-xl border border-[#dfe8e2] bg-white p-5">
         <h2 className="text-sm font-semibold text-[#1a1f1c]">주문 상품</h2>
-        <ul className="mt-3 divide-y divide-[#eef2ee] text-sm">
+        <ul className="mt-3 divide-y divide-[#eef2ee]">
           {items.map((item) => {
             const p = products.get(item.productId);
             const price = getPrice(item.productId, item.weightOption);
             return (
-              <li key={`${item.productId}::${item.weightOption}`} className="flex items-center justify-between py-2">
-                <span className="text-[#374151]">
-                  {p?.name ?? "상품"}{item.weightOption ? ` (${item.weightOption})` : ""} x {item.quantity}
-                </span>
-                <span className="font-medium tabular-nums text-[#1a1f1c]">{formatKrw(price * item.quantity)}</span>
+              <li key={`${item.productId}::${item.weightOption}`} className="flex items-center gap-3 py-3">
+                <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-[#f4f6f5]">
+                  {p?.image_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={p.image_url} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#e8f0eb] to-[#d1ddd6] text-sm font-bold text-[#166534]/30">
+                      {p?.name?.slice(0, 1) ?? "?"}
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 text-sm">
+                  <p className="font-medium text-[#1a1f1c]">{p?.name ?? "상품"}</p>
+                  {item.weightOption ? (
+                    <p className="text-xs text-[#9ca3a0]">{item.weightOption}</p>
+                  ) : null}
+                  <p className="text-xs text-[#5c6b63]">{formatKrw(price)} x {item.quantity}</p>
+                </div>
+                <p className="shrink-0 text-sm font-bold tabular-nums text-[#1a1f1c]">
+                  {formatKrw(price * item.quantity)}
+                </p>
               </li>
             );
           })}
