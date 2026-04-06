@@ -69,7 +69,7 @@ export async function placePickupOrder(input: PlacePickupInput) {
     ) {
       return {
         error:
-          "비회원 주문을 쓰려면 Supabase의 place_pickup_order 함수에 p_guest_name, p_guest_phone 인자를 추가해야 합니다. 저장소의 supabase/migrations 안내를 참고하세요.",
+          "주문 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
       };
     }
     return { error: error.message };

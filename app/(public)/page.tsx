@@ -2,31 +2,38 @@ import { HomeContent } from "@/components/public/home-content";
 import { createClient } from "@/lib/supabase/server";
 import { getPublicSession } from "@/lib/supabase/public-session";
 
-function buildListedAtLabel(d: Date): string {
-  const w = ["일", "월", "화", "수", "목", "금", "토"][d.getDay()] ?? "";
-  const day = d.getDate();
-  const h = d.getHours().toString().padStart(2, "0");
-  const m = d.getMinutes().toString().padStart(2, "0");
-  return `${day}일(${w})${h}:${m} 기준`;
-}
-
 export default async function HomePage() {
   const { profileRole } = await getPublicSession();
   const supabase = await createClient();
 
-  const { data: products } = await supabase
-    .from("products")
-    .select("id, name, unit_label, unit_price_krw, sort_order, image_url")
-    .eq("is_active", true)
-    .order("sort_order", { ascending: true })
-    .order("name", { ascending: true })
-    .limit(12);
+  const [bannersRes, productsRes, categoriesRes] = await Promise.all([
+    supabase
+      .from("banners")
+      .select("id, title, subtitle, image_url, link_href, bg_color, sort_order")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true })
+      .limit(6),
+    supabase
+      .from("products")
+      .select(
+        "id, name, unit_price_krw, sale_price_krw, discount_percent, delivery_type, badge, image_url, review_count, unit_label, category_id, sort_order",
+      )
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true })
+      .order("review_count", { ascending: false })
+      .limit(24),
+    supabase
+      .from("product_categories")
+      .select("id, name, slug, sort_order")
+      .order("sort_order", { ascending: true }),
+  ]);
 
   return (
     <HomeContent
       profileRole={profileRole}
-      products={products ?? []}
-      listedAtLabel={buildListedAtLabel(new Date())}
+      banners={bannersRes.data ?? []}
+      products={(productsRes.data ?? []) as never[]}
+      categories={categoriesRes.data ?? []}
     />
   );
 }

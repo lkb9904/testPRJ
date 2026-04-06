@@ -1,115 +1,122 @@
 import Link from "next/link";
 import { isStaffOrAdmin, type ProfileRole } from "@/lib/auth/profile-role";
+import type { ProductCard as ProductCardType } from "@/lib/types/product";
+import { ProductCard } from "@/components/public/product-card";
 import { HomeHeroCarousel } from "@/components/public/home-hero-carousel";
 import { HomeScrollFab } from "@/components/public/home-scroll-fab";
 
-export type ProductRow = {
+type Banner = {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  image_url: string | null;
+  link_href: string;
+  bg_color: string;
+};
+
+type Category = {
   id: string;
   name: string;
-  unit_label: string;
-  unit_price_krw: number;
-  image_url: string | null;
+  slug: string;
 };
 
 type Props = {
   profileRole: ProfileRole | null;
-  products: ProductRow[];
-  listedAtLabel: string;
+  banners: Banner[];
+  products: ProductCardType[];
+  categories: Category[];
 };
 
-function formatWonFigure(krw: number): string {
-  return new Intl.NumberFormat("ko-KR").format(krw);
-}
-
-export function HomeContent({ profileRole, products, listedAtLabel }: Props) {
+export function HomeContent({ profileRole, banners, products, categories }: Props) {
   const canAdmin = profileRole != null && isStaffOrAdmin(profileRole);
+
+  const bestProducts = products.slice(0, 8);
+  const restProducts = products.slice(8, 16);
 
   return (
     <div className="relative bg-white">
-      <HomeHeroCarousel />
+      {/* Hero banners */}
+      <HomeHeroCarousel banners={banners} />
 
-      <section id="today" className="scroll-mt-36 border-t border-[#eef2ee] bg-white pb-10 pt-6">
+      {/* Best ranking */}
+      <section className="border-t border-[#eef2ee] bg-white py-10">
         <div className="mx-auto max-w-5xl px-4">
-          <div className="flex items-end justify-between gap-3">
+          <div className="flex items-end justify-between">
             <h2 className="text-lg font-bold tracking-tight text-[#1a1f1c] sm:text-xl">
-              오늘의 당도
+              실시간 과일 랭킹
             </h2>
-            <div className="flex items-center gap-1 text-[11px] text-[#7a8a82] sm:text-xs">
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                className="shrink-0 opacity-70"
-                aria-hidden
-              >
-                <circle cx="12" cy="12" r="10" />
-                <path d="M12 6v6l4 2" />
-              </svg>
-              <span>{listedAtLabel}</span>
-            </div>
+            <Link href="/products" className="text-sm font-medium text-[#166534] hover:underline">
+              전체보기
+            </Link>
           </div>
+          <p className="mt-1 text-sm text-[#9ca3a0]">지금 가장 인기있어요!</p>
 
-          {products.length === 0 ? (
+          {bestProducts.length === 0 ? (
             <div className="mt-8 rounded-2xl border border-dashed border-[#c5d4cc] bg-[#fafdfb] py-14 text-center text-sm text-[#5c6b63]">
               등록된 상품이 없습니다.
             </div>
           ) : (
-            <div className="mt-5 -mx-4 flex overflow-x-auto pb-2 pl-4 pr-4 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden">
-              <ul className="flex min-w-min gap-0">
-                {products.map((p, idx) => (
-                  <li
-                    key={p.id}
-                    className={`flex w-[42vw] max-w-[168px] shrink-0 flex-col sm:w-40 ${
-                      idx > 0 ? "border-l border-[#e8ece9]" : ""
-                    }`}
-                  >
-                    <Link
-                      href="/pickup"
-                      className="flex flex-col px-3 pb-2 pt-1 transition-opacity hover:opacity-90"
-                    >
-                      <div className="relative mx-auto aspect-square w-full max-w-[140px] overflow-hidden rounded-xl bg-[#f4f6f5]">
-                        {p.image_url ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={p.image_url}
-                            alt=""
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#e8f0eb] to-[#d1ddd6] text-3xl font-bold text-[#166534]/35">
-                            {p.name.slice(0, 1)}
-                          </div>
-                        )}
-                      </div>
-                      <p className="mt-2.5 line-clamp-2 min-h-[2.5rem] text-center text-[13px] font-medium leading-snug text-[#1a1f1c]">
-                        {p.name}
-                      </p>
-                      <p className="mt-1 text-center text-2xl font-bold tabular-nums tracking-tight text-[#1a1f1c]">
-                        {formatWonFigure(p.unit_price_krw)}
-                      </p>
-                      <p className="mt-0.5 text-center text-[11px] text-[#9ca3a0]">
-                        기준 {p.unit_label}
-                      </p>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {bestProducts.map((p, idx) => (
+                <div key={p.id} className="relative">
+                  {idx < 3 ? (
+                    <span className="absolute left-2 top-2 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-[#1a1f1c] text-[11px] font-bold text-white">
+                      {idx + 1}
+                    </span>
+                  ) : null}
+                  <ProductCard product={p} />
+                </div>
+              ))}
             </div>
           )}
-
-          <div className="mt-6 flex justify-center">
-            <Link
-              href="/pickup"
-              className="inline-flex rounded-full border border-[#1a1f1c] px-5 py-2 text-sm font-medium text-[#1a1f1c] hover:bg-[#fafdfb]"
-            >
-              전체 상품 보기
-            </Link>
-          </div>
         </div>
       </section>
+
+      {/* Category section */}
+      {categories.length > 0 ? (
+        <section className="border-t border-[#eef2ee] bg-[#fafdfb] py-10">
+          <div className="mx-auto max-w-5xl px-4">
+            <h2 className="text-lg font-bold tracking-tight text-[#1a1f1c] sm:text-xl">
+              카테고리별 상품 추천
+            </h2>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {categories.map((c) => (
+                <Link
+                  key={c.slug}
+                  href={`/products?category=${c.slug}`}
+                  className="rounded-full border border-[#dfe8e2] bg-white px-5 py-2 text-sm font-medium text-[#374151] transition hover:border-[#166534] hover:text-[#14532d]"
+                >
+                  {c.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {/* More products */}
+      {restProducts.length > 0 ? (
+        <section className="border-t border-[#eef2ee] bg-white py-10">
+          <div className="mx-auto max-w-5xl px-4">
+            <h2 className="text-lg font-bold tracking-tight text-[#1a1f1c] sm:text-xl">
+              새벽에 온 신선한 과일
+            </h2>
+            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {restProducts.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+            <div className="mt-8 flex justify-center">
+              <Link
+                href="/products"
+                className="inline-flex rounded-full border border-[#1a1f1c] px-6 py-2.5 text-sm font-medium text-[#1a1f1c] hover:bg-[#fafdfb]"
+              >
+                전체 상품 보기
+              </Link>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       {canAdmin ? (
         <p className="pb-8 text-center text-xs text-[#9ca3a0]">

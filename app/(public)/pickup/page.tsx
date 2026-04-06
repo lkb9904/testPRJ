@@ -82,8 +82,8 @@ export default async function PickupPage() {
       </div>
 
       {catalogError ? (
-        <p className="mt-8 text-sm text-amber-800 dark:text-amber-200">
-          상품·재고 정보를 불러오지 못했습니다. 마이그레이션과 RLS를 확인해 주세요.
+        <p className="mt-8 text-sm text-amber-800">
+          상품·재고 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
         </p>
       ) : (
         <PickupOrderClient
