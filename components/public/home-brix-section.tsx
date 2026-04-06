@@ -44,18 +44,18 @@ export function HomeBrixSection({ measurements }: Props) {
               href={`/brix?date=${m.measured_at.slice(0, 10)}`}
               className="flex w-28 shrink-0 flex-col items-center rounded-2xl bg-white p-3 transition hover:shadow-md sm:w-32"
             >
-              <div className="h-14 w-14 overflow-hidden rounded-full bg-[#f4f6f5] sm:h-16 sm:w-16">
+              <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl bg-[#f4f6f5] p-1 sm:h-18 sm:w-18">
                 {m.product_image_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={m.product_image_url}
                     alt={m.product_name}
-                    className="h-full w-full object-cover"
+                    className="max-h-full max-w-full object-contain"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center text-xl font-bold text-[#166534]/25">
+                  <span className="text-xl font-bold text-[#166534]/25">
                     {m.product_name.slice(0, 1)}
-                  </div>
+                  </span>
                 )}
               </div>
               <p className="mt-2 text-center text-xs font-medium text-[#374151] line-clamp-1">

@@ -118,22 +118,23 @@ export function BrixDetailClient({
                 key={m.id}
                 type="button"
                 onClick={() => setSelectedIdx(idx)}
-                className={`flex shrink-0 flex-col items-center rounded-2xl p-2 transition ${
+                className={`flex shrink-0 flex-col items-center rounded-2xl p-3 transition ${
                   idx === selectedIdx
                     ? "bg-[#f0fdf4] ring-2 ring-[#166534]"
                     : "bg-white hover:bg-[#fafdfb]"
                 }`}
               >
-                <div className="h-14 w-14 overflow-hidden rounded-full bg-[#f4f6f5]">
+                <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl bg-[#f4f6f5] p-1">
                   {m.product_image_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={m.product_image_url} alt={m.product_name} className="h-full w-full object-cover" />
+                    <img src={m.product_image_url} alt={m.product_name} className="h-full w-full object-contain" />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center text-lg font-bold text-[#166534]/25">
+                    <span className="text-lg font-bold text-[#166534]/25">
                       {m.product_name.slice(0, 1)}
-                    </div>
+                    </span>
                   )}
                 </div>
+                <p className="mt-1 max-w-[4.5rem] truncate text-[10px] text-[#5c6b63]">{m.product_name}</p>
               </button>
             ))}
           </div>
@@ -155,18 +156,18 @@ export function BrixDetailClient({
 
               {/* Product image */}
               <div className="mt-5 flex justify-center">
-                <div className="h-40 w-40 overflow-hidden rounded-2xl bg-white shadow-sm">
+                <div className="flex h-44 w-44 items-center justify-center overflow-hidden rounded-2xl bg-white p-2 shadow-sm">
                   {selected.product_image_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={selected.product_image_url}
                       alt={selected.product_name}
-                      className="h-full w-full object-cover"
+                      className="max-h-full max-w-full object-contain"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center text-5xl font-bold text-[#166534]/20">
+                    <span className="text-5xl font-bold text-[#166534]/20">
                       {selected.product_name.slice(0, 1)}
-                    </div>
+                    </span>
                   )}
                 </div>
               </div>
